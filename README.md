@@ -8,18 +8,18 @@ Mainly based on bcoe's https://github.com/bcoe/secure-smtpd and posts to http://
 
 Creates a threaded ESMTP server that supports SSL/TLS and LOGIN authentication.
 
-Methods to play with
----------------------
+Methods to sub
+----------------
 
-*    validate_credentials(self,username,password)
+*    `validate_credentials(self,username,password)`
     
-*    process_message(self, sender, recipients, msg)
+*    `process_message(self, sender, recipients, msg)`
 
-*    deny_sender(self,sender)
+*    `deny_sender(self,sender)`
 
-*   deny_recipient(self,recipient)
+*   `deny_recipient(self,recipient)`
 
-*    deny_host(self,hosttuple)
+*    `deny_host(self,hosttuple)`
 
 ### Useful things in an instance;
 
