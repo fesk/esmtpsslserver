@@ -1,9 +1,5 @@
 #!/usr/bin/env python
-<<<<<<< HEAD
 """ESMTP server base class.  Nick Besant 2014-2015 hwf@fesk.net
-=======
-"""ESMTP server base class.  Nick Besant 2014 hwf@fesk.net
->>>>>>> 4c36a5eb339c51c0a00909d5eda811cb1b58361d
 
 Mainly based on bcoe's https://github.com/bcoe/secure-smtpd and posts to http://bugs.python.org/issue1057417 from Mark D Roth
 
@@ -52,10 +48,7 @@ import socket
 import base64
 import re
 
-<<<<<<< HEAD
 
-=======
->>>>>>> 4c36a5eb339c51c0a00909d5eda811cb1b58361d
 class BaseSSLServer(TCPServer):
     """Base class for providing SSL-wrapped TCPServer.  See SSLSMTPServer for info"""
     allow_reuse_address = 1
@@ -80,10 +73,7 @@ class BaseSSLServer(TCPServer):
             return connstream, fromaddr
         else:
             return newsocket, fromaddr        
-<<<<<<< HEAD
 
-=======
->>>>>>> 4c36a5eb339c51c0a00909d5eda811cb1b58361d
         
 class SSLSMTPServer(ThreadingMixIn, BaseSSLServer): 
     """SMTP Server class.
@@ -99,10 +89,7 @@ class SSLSMTPServer(ThreadingMixIn, BaseSSLServer):
     """
     pass
 
-<<<<<<< HEAD
 
-=======
->>>>>>> 4c36a5eb339c51c0a00909d5eda811cb1b58361d
 class ESMTPRequestHandler(StreamRequestHandler):
     """SMTP request handler base class.  Called when a new connection comes in.
         
@@ -137,10 +124,7 @@ class ESMTPRequestHandler(StreamRequestHandler):
     authenticated=False
     username=''
     loggerfunc=None
-<<<<<<< HEAD
     openrelay=False
-=======
->>>>>>> 4c36a5eb339c51c0a00909d5eda811cb1b58361d
 
     class __emptylogger():
         """Empty logger stub"""
@@ -162,13 +146,10 @@ class ESMTPRequestHandler(StreamRequestHandler):
         else:
             self.logger=self.__emptylogger
             
-<<<<<<< HEAD
         if self.openrelay:
             self.authenticated=True
             self.username=''
             
-=======
->>>>>>> 4c36a5eb339c51c0a00909d5eda811cb1b58361d
         self.close_flag = False
         self.helo = None
         self.reset_state()
@@ -190,21 +171,13 @@ class ESMTPRequestHandler(StreamRequestHandler):
                 else:
                     cmd = args.pop(0).upper()
                     
-<<<<<<< HEAD
                 #self.logger.debug('Got command: {0}'.format(cmd))
-=======
-                self.logger.debug('Got command: {0}'.format(cmd))
->>>>>>> 4c36a5eb339c51c0a00909d5eda811cb1b58361d
 
                 # White list of operations that are allowed prior to AUTH.
                 if cmd not in ['AUTH', 'EHLO', 'HELO', 'NOOP', 'RSET', 'QUIT', 'VRFY'] and not self.authenticated:
                     msg='530 Authentication required'
                 else:
-<<<<<<< HEAD
                     method_name = 'smtp_' + cmd.upper()
-=======
-                    method_name = 'smtp_' + cmd
->>>>>>> 4c36a5eb339c51c0a00909d5eda811cb1b58361d
                     if hasattr(self, method_name):
                         method = getattr(self, method_name)
                         msg = method(args)
@@ -238,11 +211,7 @@ class ESMTPRequestHandler(StreamRequestHandler):
 
     def send_response(self, msg):
         """Sends an SMTP response to the client."""
-<<<<<<< HEAD
         #self.logger.debug('Sending: {0}'.format(msg))
-=======
-        self.logger.debug('Sending: {0}'.format(msg))
->>>>>>> 4c36a5eb339c51c0a00909d5eda811cb1b58361d
         self.wfile.write(msg + '\r\n')
     
     
@@ -280,7 +249,6 @@ class ESMTPRequestHandler(StreamRequestHandler):
         elif re.match('\[\d+.\d+.\d+.\d+\]$',arg):
             # IP literal
             return True
-<<<<<<< HEAD
         else:
             return True
             if re.match('[a-zA-Z0-9]+.[a-zA-Z0-9]+.[a-zA-Z]+$',arg):
@@ -292,12 +260,6 @@ class ESMTPRequestHandler(StreamRequestHandler):
             if re.match('[a-zA-Z]+$',arg.split('.')[-1]):
                 return True
             
-=======
-        elif re.match('[a-zA-Z0-9]+.[a-zA-Z0-9]+.[a-zA-Z]+$',arg):
-            # looks hostname-y
-            return True
-        else:
->>>>>>> 4c36a5eb339c51c0a00909d5eda811cb1b58361d
             return False
     
     def smtp_EHLO(self, args):
@@ -336,11 +298,7 @@ class ESMTPRequestHandler(StreamRequestHandler):
                 # along with the 'LOGIN' stanza, hence both situations are
                 # handled.
                 if len(args) == 2:
-<<<<<<< HEAD
                     self.username = base64.b64decode( args[1] )
-=======
-                    self.username = base64.b64decode( args.split[1] )
->>>>>>> 4c36a5eb339c51c0a00909d5eda811cb1b58361d
                     return '334 %s' % base64.b64encode('Username')
                 else:
                     return '334 %s' % base64.b64encode('Username')
@@ -527,8 +485,4 @@ if __name__ == '__main__':
 
 
 
-<<<<<<< HEAD
             
-=======
-            
->>>>>>> 4c36a5eb339c51c0a00909d5eda811cb1b58361d
