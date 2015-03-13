@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-"""ESMTP server base class.  Nick Besant 2014 hwf@fesk.net
+"""ESMTP server base class.  Nick Besant 2014-2015 hwf@fesk.net
 
 Mainly based on bcoe's https://github.com/bcoe/secure-smtpd and posts to http://bugs.python.org/issue1057417 from Mark D Roth
 
-Creates a basic ESMTP server that supports SSL and LOGIN authentication.
+Creates a threaded ESMTP server that supports SSL/TLS and LOGIN authentication.
 
 Override methods;
     validate_credentials(self,username,password)
@@ -26,7 +26,7 @@ Useful things in an instance;
 .client_address = read for tuple(remote_ip,port) 
 
 EXAMPLE USAGE;
-from esmtpsslserver import SSLSMTPServer, DQESMTPRequestHandler
+from esmtpsslserver import SSLSMTPServer, ESMTPRequestHandler
 import socket
 
 server = SSLSMTPServer(('0.0.0.0',4650),
@@ -47,6 +47,7 @@ import ssl
 import socket
 import base64
 import re
+
 
 class BaseSSLServer(TCPServer):
     """Base class for providing SSL-wrapped TCPServer.  See SSLSMTPServer for info"""
@@ -72,6 +73,7 @@ class BaseSSLServer(TCPServer):
             return connstream, fromaddr
         else:
             return newsocket, fromaddr        
+
         
 class SSLSMTPServer(ThreadingMixIn, BaseSSLServer): 
     """SMTP Server class.
@@ -86,6 +88,7 @@ class SSLSMTPServer(ThreadingMixIn, BaseSSLServer):
     
     """
     pass
+
 
 class ESMTPRequestHandler(StreamRequestHandler):
     """SMTP request handler base class.  Called when a new connection comes in.
@@ -121,6 +124,7 @@ class ESMTPRequestHandler(StreamRequestHandler):
     authenticated=False
     username=''
     loggerfunc=None
+    openrelay=False
 
     class __emptylogger():
         """Empty logger stub"""
@@ -141,6 +145,10 @@ class ESMTPRequestHandler(StreamRequestHandler):
             self.logger=self.loggerfunc
         else:
             self.logger=self.__emptylogger
+            
+        if self.openrelay:
+            self.authenticated=True
+            self.username=''
             
         self.close_flag = False
         self.helo = None
@@ -163,13 +171,13 @@ class ESMTPRequestHandler(StreamRequestHandler):
                 else:
                     cmd = args.pop(0).upper()
                     
-                self.logger.debug('Got command: {0}'.format(cmd))
+                #self.logger.debug('Got command: {0}'.format(cmd))
 
                 # White list of operations that are allowed prior to AUTH.
                 if cmd not in ['AUTH', 'EHLO', 'HELO', 'NOOP', 'RSET', 'QUIT', 'VRFY'] and not self.authenticated:
                     msg='530 Authentication required'
                 else:
-                    method_name = 'smtp_' + cmd
+                    method_name = 'smtp_' + cmd.upper()
                     if hasattr(self, method_name):
                         method = getattr(self, method_name)
                         msg = method(args)
@@ -203,7 +211,7 @@ class ESMTPRequestHandler(StreamRequestHandler):
 
     def send_response(self, msg):
         """Sends an SMTP response to the client."""
-        self.logger.debug('Sending: {0}'.format(msg))
+        #self.logger.debug('Sending: {0}'.format(msg))
         self.wfile.write(msg + '\r\n')
     
     
@@ -241,10 +249,17 @@ class ESMTPRequestHandler(StreamRequestHandler):
         elif re.match('\[\d+.\d+.\d+.\d+\]$',arg):
             # IP literal
             return True
-        elif re.match('[a-zA-Z0-9]+.[a-zA-Z0-9]+.[a-zA-Z]+$',arg):
-            # looks hostname-y
-            return True
         else:
+            return True
+            if re.match('[a-zA-Z0-9]+.[a-zA-Z0-9]+.[a-zA-Z]+$',arg):
+                # looks hostname-y
+                return True
+            for dpart in arg.split('.'):
+                if not re.match('[a-zA-Z0-9]+$',dpart):
+                    return False
+            if re.match('[a-zA-Z]+$',arg.split('.')[-1]):
+                return True
+            
             return False
     
     def smtp_EHLO(self, args):
@@ -283,7 +298,7 @@ class ESMTPRequestHandler(StreamRequestHandler):
                 # along with the 'LOGIN' stanza, hence both situations are
                 # handled.
                 if len(args) == 2:
-                    self.username = base64.b64decode( args.split[1] )
+                    self.username = base64.b64decode( args[1] )
                     return '334 %s' % base64.b64encode('Username')
                 else:
                     return '334 %s' % base64.b64encode('Username')
